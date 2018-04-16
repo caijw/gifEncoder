@@ -1,0 +1,11 @@
+# nodejs node_modules
+
+node_modules/
+
+# add_on build result
+
+build/
+
+#others
+
+package-lock.json
