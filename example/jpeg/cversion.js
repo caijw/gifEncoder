@@ -11,14 +11,14 @@ let outputFilename = "c_out.gif";
 let generateGIF = async function (pixelBuffers, options) {
 
     return new Promise(function (resolve, reject) {
-
+        
         let height = options.height || 800;
         let width = options.width || 600;
         let quality = options.quality || 10;
         let interval = options.interval || 800;
         let repeat = options.repeat === true ? 0 : -1;
         
-        gifNodeAddOn.RGBAToGIF(width, height, interval, repeat, pixelBuffers, function (err, gifBuffer) {
+        gifNodeAddOn.picsToGIF(interval, repeat, pixelBuffers, function (err, gifBuffer) {
             
             if(err){
                 reject(err);
@@ -50,11 +50,17 @@ async function runFun(){
 }
 
 
-runFun().then(function () {
-    
-}).catch(function (err) {
-    console.log(err);
-})
+// setInterval(function () {
+    console.log('sdfs')
+    runFun().then(function () {
+        
+    }).catch(function (err) {
+        console.log(err);
+    })
+// }, 4000)
+
+
+
 
 
 

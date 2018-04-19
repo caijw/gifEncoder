@@ -14,7 +14,15 @@
       ],
       "include_dirs" : [
           "<!(node -e \"require('nan')\")"
+      ],
+      "conditions": [
+        ["OS==\"linux\"", {
+          "include_dirs": [
+            "/usr/local/node-v9.11.1/include/node/"
+          ]
+        }]
       ]
+
     }
   ]
 }

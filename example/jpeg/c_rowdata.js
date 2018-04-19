@@ -21,6 +21,7 @@ let generateGIF = async function (pixelBuffers, options) {
         gifNodeAddOn.picsToGIF(interval, repeat, pixelBuffers, function (err, gifBuffer) {
             
             if(err){
+                console.log(err);
                 reject(err);
             }else{
                 resolve(gifBuffer);
@@ -31,6 +32,7 @@ let generateGIF = async function (pixelBuffers, options) {
 }
 
 
+var num = 0;
 
 async function runFun(){
     
@@ -40,17 +42,26 @@ async function runFun(){
     }
 
 
-    let gifBuffer = await generateGIF(imgBuffers, {width: 820, height: 620, interval: 100, repeat: true});
+    for(var i = 0; i < 10000; i++){
+        let gifBuffer = await generateGIF(imgBuffers, {interval: 100, repeat: true});
+        // gifBuffer.clear()
+        delete gifBuffer;
+        console.log('finish encode', num++);
+        fs.writeFileSync('./out/' + num+'.gif', gifBuffer);
+    }
 
-    fs.writeFileSync(outputFilename, gifBuffer);
+
+
+
+
+
+
 }
 
 
-runFun().then(function () {
-    
-}).catch(function (err) {
-    console.log(err);
-})
+
+
+runFun();
 
 
 

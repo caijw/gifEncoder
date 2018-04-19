@@ -3,6 +3,7 @@
 #define GIFENCODER_H
 #include <vector>
 #include <iostream>
+#include <stdint.h>
 
 class GifEncoder {
 
@@ -69,7 +70,7 @@ class GifEncoder {
 
         bool started; // started encoding
 
-        std::vector<unsigned char> out;
+        std::vector<unsigned char>* out;
 
 
     private:

@@ -43,11 +43,15 @@ GifEncoder::GifEncoder(int width, int height){
 
     this->started = false;  // started encoding
 
-    this->out;
+    this->out = new std::vector<unsigned char>();
 
 
 }
 
+
+GifEncoder::~GifEncoder(){
+
+}
 
 void GifEncoder::setDelay(int milliseconds){
     this->delay = (int)std::round(milliseconds / 10);
@@ -97,8 +101,7 @@ void GifEncoder::addFrame(unsigned char *imageData, int channels){
 
 
 void GifEncoder::finish(){
-    this->out.push_back(0x3b);
-}
+    this->out->push_back(0x3b); }
 
 void GifEncoder::setQuality(int quality){
     if (quality < 1) quality = 1;
@@ -106,12 +109,12 @@ void GifEncoder::setQuality(int quality){
 }
 
 void GifEncoder::start(){
-    this->out.push_back('G');
-    this->out.push_back('I');
-    this->out.push_back('F');
-    this->out.push_back('8');
-    this->out.push_back('9');
-    this->out.push_back('a');
+    this->out->push_back('G');
+    this->out->push_back('I');
+    this->out->push_back('F');
+    this->out->push_back('8');
+    this->out->push_back('9');
+    this->out->push_back('a');
     this->started = true;
 }
 
@@ -174,6 +177,9 @@ void GifEncoder::analyzePixels(int channels){
             }
         }
     }
+
+    delete imgq;
+
 }
 
 
@@ -226,9 +232,9 @@ void GifEncoder::getImagePixels(int channels){
 }
 
 void GifEncoder::writeGraphicCtrlExt(){
-    this->out.push_back(0x21); // extension introducer
-    this->out.push_back(0xf9); // GCE label
-    this->out.push_back(4); // data block size
+    this->out->push_back(0x21); // extension introducer
+    this->out->push_back(0xf9); // GCE label
+    this->out->push_back(4); // data block size
 
     int transp, disp;
     if (this->transparent == -1) {
@@ -246,7 +252,7 @@ void GifEncoder::writeGraphicCtrlExt(){
     disp <<= 2;
 
     // packed fields
-    this->out.push_back(
+    this->out->push_back(
         0 | // 1:3 reserved
         disp | // 4:6 disposal
         0 | // 7 user input - 0 = none
@@ -254,13 +260,13 @@ void GifEncoder::writeGraphicCtrlExt(){
     );
 
     this->writeShort(this->delay); // delay x 1/100 sec
-    this->out.push_back(this->transIndex); // transparent color index
-    this->out.push_back(0); // block terminator
+    this->out->push_back(this->transIndex); // transparent color index
+    this->out->push_back(0); // block terminator
 }
 
 
 void GifEncoder::writeImageDesc(){
-    this->out.push_back(0x2c); // image separator
+    this->out->push_back(0x2c); // image separator
     this->writeShort(0); // image position x,y = 0,0
     this->writeShort(0);
     this->writeShort(this->width); // image size
@@ -269,11 +275,11 @@ void GifEncoder::writeImageDesc(){
     // packed fields
     if (this->firstFrame) {
         // no LCT - GCT is used for first (or only) frame
-        this->out.push_back(0);
+        this->out->push_back(0);
     }
     else {
         // specify normal LCT
-        this->out.push_back(
+        this->out->push_back(
             0x80 | // 1 local color table 1=yes
             0 | // 2 interlace - 0=no
             0 | // 3 sorted - 0=no
@@ -290,52 +296,52 @@ void GifEncoder::writeLSD(){
     this->writeShort(this->height);
 
     // packed fields
-    this->out.push_back(
+    this->out->push_back(
         0x80 | // 1 : global color table flag = 1 (gct used)
         0x70 | // 2-4 : color resolution = 7
         0x00 | // 5 : gct sort flag = 0
         this->palSize // 6-8 : gct size
     );
 
-    this->out.push_back(0); // background color index
-    this->out.push_back(0); // pixel aspect ratio - assume 1:1
+    this->out->push_back(0); // background color index
+    this->out->push_back(0); // pixel aspect ratio - assume 1:1
 }
 
 
 void GifEncoder::writeNetscapeExt(){
-    this->out.push_back(0x21); // extension introducer
-    this->out.push_back(0xff); // app extension label
-    this->out.push_back(11); // block size
-    this->out.push_back('N'); // app id + auth code
-    this->out.push_back('E'); // app id + auth code
-    this->out.push_back('T'); // app id + auth code
-    this->out.push_back('S'); // app id + auth code
-    this->out.push_back('C'); // app id + auth code
-    this->out.push_back('A'); // app id + auth code
-    this->out.push_back('P'); // app id + auth code
-    this->out.push_back('E'); // app id + auth code
-    this->out.push_back('2'); // app id + auth code
-    this->out.push_back('.'); // app id + auth code
-    this->out.push_back('0'); // app id + auth code
-    this->out.push_back(3); // sub-block size
-    this->out.push_back(1); // loop sub-block id
+    this->out->push_back(0x21); // extension introducer
+    this->out->push_back(0xff); // app extension label
+    this->out->push_back(11); // block size
+    this->out->push_back('N'); // app id + auth code
+    this->out->push_back('E'); // app id + auth code
+    this->out->push_back('T'); // app id + auth code
+    this->out->push_back('S'); // app id + auth code
+    this->out->push_back('C'); // app id + auth code
+    this->out->push_back('A'); // app id + auth code
+    this->out->push_back('P'); // app id + auth code
+    this->out->push_back('E'); // app id + auth code
+    this->out->push_back('2'); // app id + auth code
+    this->out->push_back('.'); // app id + auth code
+    this->out->push_back('0'); // app id + auth code
+    this->out->push_back(3); // sub-block size
+    this->out->push_back(1); // loop sub-block id
     this->writeShort(this->repeat); // loop count (extra iterations, 0=repeat forever)
-    this->out.push_back(0); // block terminator
+    this->out->push_back(0); // block terminator
 }
 
 void GifEncoder::writePalette(){
     int size = this->colorTab.size();
     for(int i = 0; i < size; i++){
-        this->out.push_back(this->colorTab[i]);
+        this->out->push_back(this->colorTab[i]);
     }
     int n = (3 * 256) - this->colorTab.size();
     for (int i = 0; i < n; i++)
-        this->out.push_back(0);
+        this->out->push_back(0);
 }
 
 void GifEncoder::writeShort(int pValue){
-    this->out.push_back(pValue & 0xFF);
-    this->out.push_back((pValue >> 8) & 0xFF);
+    this->out->push_back(pValue & 0xFF);
+    this->out->push_back((pValue >> 8) & 0xFF);
 }
 
 
@@ -344,4 +350,6 @@ void GifEncoder::writePixels(){
     LzwEncoder* enc = new LzwEncoder(this->width, this->height, this->indexedPixels, this->colorDepth);
 
     enc->encode(this->out);
+
+    delete enc;
 }

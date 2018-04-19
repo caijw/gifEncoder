@@ -45,7 +45,7 @@ const generateGIF = (pixelBuffers, options) => {
         encoder.finish()
     })
 }
-
+var num = 0;
 async function runFun(){
 
 	let jpgBuffers = [];
@@ -58,16 +58,18 @@ async function runFun(){
 	for(let i = 0; i < jpgBuffers.length; i++){
 		pixelBuffers.push(JPEG.decode(jpgBuffers[i]).data);
 	}
+    for(var i = 0; i < 10000; i++){
+        
+            let gifBuffer = await generateGIF(pixelBuffers, {width: 820, height: 620, interval: 100, repeat: true});
+            // console.log(...gifBuffer)
+            // fs.writeFileSync(outputFilename, gifBuffer);
+            console.log('finish encode', num++);
+    }
 
 
-	let gifBuffer = await generateGIF([ pixelBuffers[0] ], {width: 164, height: 124, interval: 100, repeat: true});
-	// console.log(...gifBuffer)
-	fs.writeFileSync(outputFilename, gifBuffer);
 }
 
 
-runFun().then(function () {
-	
-})
+runFun()
 
 

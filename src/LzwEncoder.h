@@ -1,6 +1,6 @@
 #ifndef LZWENCODER_H
 #define LZWENCODER_H
-
+#include <stdint.h>
 #include <vector>
 
 
@@ -13,7 +13,9 @@ public:
 
     ~LzwEncoder();
 
-    void encode(std::vector<uint8_t> &content);
+    // void encode(std::vector<uint8_t> &content);
+
+    void encode(std::vector<uint8_t> *content);
 
 private:
 
@@ -42,21 +44,21 @@ private:
     int ClearCode;
     int EOFCode;
 
-    void char_out(uint8_t c, std::vector<uint8_t> & outs);
+    void char_out(uint8_t c, std::vector<uint8_t> *outs);
 
-    void cl_block(std::vector<uint8_t> &outs);
+    void cl_block(std::vector<uint8_t> *outs);
 
     void cl_hash(int hsize);
 
-    void compress(int init_bits, std::vector<uint8_t> &outs);
+    void compress(int init_bits, std::vector<uint8_t> *outs);
 
-    void flush_char(std::vector<uint8_t> &outs);
+    void flush_char(std::vector<uint8_t> *outs);
 
     int MAXCODE(int n_bits);
 
     int nextPixel();
 
-    void output(int code, std::vector<uint8_t> &outs);
+    void output(int code, std::vector<uint8_t> *outs);
 
     int n_bits;
 

@@ -36,8 +36,6 @@ class RGBAToGIFWorker : public Nan::AsyncWorker {
     	delay = _delay;
         repeat = _repeat;
 
-    	left = 0;
-    	top = 0;
     	gifEncoder = new GifEncoder(width, height);
         gifEncoder->start();
         gifEncoder->setRepeat(repeat);
@@ -55,9 +53,19 @@ class RGBAToGIFWorker : public Nan::AsyncWorker {
 
     }
     void HandleOKCallback () {
-        v8::Local<v8::Object> gifBuffer = Nan::NewBuffer((char *)((gifEncoder->out).data()), (gifEncoder->out).size(), buffer_delete_callback, &(gifEncoder->out) ).ToLocalChecked();
+        
+        v8::Local<v8::Object> gifBuffer = Nan::NewBuffer((char *)(gifEncoder->out->data()), gifEncoder->out->size(), buffer_delete_callback, gifEncoder->out).ToLocalChecked();
+        // v8::Local<v8::Object> gifBuffer = Nan::NewBuffer((char *)((gifEncoder->out).data()), (gifEncoder->out).size()).ToLocalChecked();
+        // v8::Local<v8::Object> gifBuffer = Nan::CopyBuffer((char *)((gifEncoder->out).data()), (gifEncoder->out).size()).ToLocalChecked();
         v8::Local<v8::Value> argv[] = { Nan::Null(), gifBuffer };
         callback->Call(2, argv);
+    }
+    ~RGBAToGIFWorker(){
+        delete gifEncoder;
+        delete callback;
+        for(int i = 0; i < buffersVec.size(); i++){
+            delete buffersVec[i];
+        }
     }
 
     private:
@@ -67,30 +75,96 @@ class RGBAToGIFWorker : public Nan::AsyncWorker {
         int channels;
         int delay;
         int repeat;
-        uint16_t left;
-        uint16_t top;
         GifEncoder *gifEncoder = nullptr;
 };
 
 
 
+// /*
+// 	delay, repeat, buffers, callback
+// */
+// void picsToGIF(const v8::FunctionCallbackInfo<Value>& args) {
+
+// 	Isolate* isolate = args.GetIsolate();
+
+//     if (args.Length() != 4) {
+//         isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong number of arguments, expected 4 arguments!")));
+//         return;
+//     }
+//     if (!args[0]->IsNumber()) {
+//       isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments, delay should be a number!")));
+//       return;
+//     }
+//     if (!args[1]->IsNumber()) {
+//       isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments, repeat should be a number!")));
+//       return;
+//     }
+
+//     /*judge array of buffer*/
+//     // if(!args[2]->()){
+//     //     isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments, buffers should a Buffers type!")));
+//     //     return;
+//     // }
+
+//     if(!args[3]->IsFunction()){
+//         isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments, callback should be a function!")));
+//         return;
+//     }
+
+// 	int delay = args[0]->Int32Value();
+//     int repeat = args[1]->Int32Value();
+
+// 	Local<Array> array = Local<Array>::Cast(args[2]);
+
+// 	Nan::Callback *callback = new Nan::Callback( v8::Local<v8::Function>::Cast(args[3]));
+
+// 	std::vector<unsigned char *> buffersVec;
+
+//     int imgWidth = 0,
+//         imgHeight = 0,
+//         imgChannels = 0,
+//         desiredChannels = 0,
+//         rowDataLen = 0;
+
+// 	for (unsigned int i = 0; i < array->Length(); i++ ) {
+
+
+
+//         unsigned char *rowData = (unsigned char *)node::Buffer::Data( array->Get(i)->ToObject() );
+
+//         rowDataLen = node::Buffer::Length(array->Get(i)->ToObject());
+
+// 		unsigned char *pixelData = stbi_load_from_memory(rowData, rowDataLen, &imgWidth, &imgHeight, &imgChannels, desiredChannels);
+
+// 		buffersVec.push_back( pixelData );
+// 	}
+
+// 	Nan::AsyncQueueWorker(new RGBAToGIFWorker(callback, buffersVec, imgWidth, imgHeight, imgChannels, delay, repeat));
+
+// }
+
+
+
 /*
-	delay, repeat, buffers, callback
+    delay, repeat, buffers, callback
 */
-void picsToGIF(const v8::FunctionCallbackInfo<Value>& args) {
+NAN_METHOD(picsToGIF) {
+    Nan::HandleScope scope;
 
-	Isolate* isolate = args.GetIsolate();
+    if (info.Length() != 4) {
+        Nan::ThrowTypeError("Wrong number of arguments, expected 4 arguments!");
 
-    if (args.Length() != 4) {
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong number of arguments, expected 6 arguments!")));
+        // isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong number of arguments, expected 4 arguments!")));
         return;
     }
-    if (!args[0]->IsNumber()) {
-      isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments, delay should be a number!")));
+    if (!info[0]->IsNumber()) {
+        Nan::ThrowTypeError("Wrong arguments, delay should be a number!");
+        // isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments, delay should be a number!")));
       return;
     }
-    if (!args[1]->IsNumber()) {
-      isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments, repeat should be a number!")));
+    if (!info[1]->IsNumber()) {
+        Nan::ThrowTypeError("Wrong arguments, repeat should be a number!");
+        // isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments, repeat should be a number!")));
       return;
     }
 
@@ -100,19 +174,20 @@ void picsToGIF(const v8::FunctionCallbackInfo<Value>& args) {
     //     return;
     // }
 
-    if(!args[3]->IsFunction()){
-        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments, callback should be a function!")));
+    if(!info[3]->IsFunction()){
+        Nan::ThrowTypeError("Wrong arguments, callback should be a function!");
+        // isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments, callback should be a function!")));
         return;
     }
 
-	int delay = args[0]->Int32Value();
-    int repeat = args[1]->Int32Value();
+    int delay = info[0]->Int32Value();
+    int repeat = info[1]->Int32Value();
 
-	Local<Array> array = Local<Array>::Cast(args[2]);
+    Local<Array> array = Local<Array>::Cast(info[2]);
 
-	Nan::Callback *callback = new Nan::Callback( v8::Local<v8::Function>::Cast(args[3]));
+    Nan::Callback *callback =  new Callback(info[3].As<Function>());
 
-	std::vector<unsigned char *> buffersVec;
+    std::vector<unsigned char *> buffersVec;
 
     int imgWidth = 0,
         imgHeight = 0,
@@ -120,31 +195,43 @@ void picsToGIF(const v8::FunctionCallbackInfo<Value>& args) {
         desiredChannels = 0,
         rowDataLen = 0;
 
-	for (unsigned int i = 0; i < array->Length(); i++ ) {
-
-
+    for (unsigned int i = 0; i < array->Length(); i++ ) {
 
         unsigned char *rowData = (unsigned char *)node::Buffer::Data( array->Get(i)->ToObject() );
 
         rowDataLen = node::Buffer::Length(array->Get(i)->ToObject());
 
-		unsigned char *pixelData = stbi_load_from_memory(rowData, rowDataLen, &imgWidth, &imgHeight, &imgChannels, desiredChannels);
+        unsigned char *pixelData = stbi_load_from_memory(rowData, rowDataLen, &imgWidth, &imgHeight, &imgChannels, desiredChannels);
 
-		buffersVec.push_back( pixelData );
-	}
+        buffersVec.push_back( pixelData );
+    }
 
-	Nan::AsyncQueueWorker(new RGBAToGIFWorker(callback, buffersVec, imgWidth, imgHeight, imgChannels, delay, repeat));
-
-}
-
-
-
-void init(Local<Object> exports) {
-
-  NODE_SET_METHOD(exports, "picsToGIF", picsToGIF);
-
-
+    Nan::AsyncQueueWorker(new RGBAToGIFWorker(callback, buffersVec, imgWidth, imgHeight, imgChannels, delay, repeat));
 
 }
 
-NODE_MODULE(NODE_GYP_MODULE_NAME, init)
+
+
+
+
+
+// void init(Local<Object> exports) {
+
+//   NODE_SET_METHOD(exports, "picsToGIF", picsToGIF);
+
+
+
+// }
+
+// NODE_MODULE(NODE_GYP_MODULE_NAME, init)
+
+
+
+
+NAN_MODULE_INIT(Init) {
+        
+   Nan::Set(target, New<String>("picsToGIF").ToLocalChecked(),
+        GetFunction(New<FunctionTemplate>(picsToGIF)).ToLocalChecked());
+}
+
+NODE_MODULE(basic_nan, Init)

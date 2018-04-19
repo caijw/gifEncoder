@@ -1,7 +1,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 #include <vector>
-
+#include <stdint.h>
 
 
 class Logger {

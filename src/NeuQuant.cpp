@@ -34,6 +34,12 @@ NeuQuant::NeuQuant(std::vector<unsigned char> &thepic, int sample){
     lengthcount = thepic.size();
     samplefac = sample;
 }
+NeuQuant::~NeuQuant(){
+
+}
+
+
+
 
 /* Initialise network in range (0,0,0) to (255,255,255) and set parameters */
 void NeuQuant::init() {
@@ -353,5 +359,7 @@ std::vector<uint8_t> NeuQuant::getColormap(){
       map.push_back((int)network[j][1] & 0xff);
       map.push_back((int)network[j][2] & 0xff);
     }
+    delete index;
+    
     return map;
 };

@@ -23,6 +23,7 @@
 #ifndef NEUQUANT_H
 #define NEUQUANT_H
 #include <vector>
+#include <stdint.h>
 #include <algorithm>
 
 // For 256 colours, fixed arrays need 8kb, plus space for the image
@@ -88,7 +89,9 @@ class NeuQuant {
 
 public:
 
-    NeuQuant(std::vector<unsigned char> &thepic, int sample);   
+    NeuQuant(std::vector<unsigned char> &thepic, int sample);
+
+    ~NeuQuant();
 
     // Initialise network in range (0,0,0) to (255,255,255) and set parameters
     void init();

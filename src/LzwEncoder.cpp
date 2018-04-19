@@ -37,17 +37,19 @@ LzwEncoder::LzwEncoder(int width, int height, std::vector<uint8_t> &pixels, int 
 }
 
 LzwEncoder::~LzwEncoder() {
-
+	delete accum;
+	delete htab;
+	delete codetab;
 }
 
 
 
-void LzwEncoder::char_out(uint8_t c, std::vector<uint8_t> &outs){
+void LzwEncoder::char_out(uint8_t c, std::vector<uint8_t> *outs){
 	accum[a_count++] = c;
 	if (a_count >= 254) flush_char(outs);
 }
 
-void LzwEncoder::cl_block(std::vector<uint8_t> &outs){
+void LzwEncoder::cl_block(std::vector<uint8_t> *outs){
 	cl_hash(HSIZE);
 	free_ent = ClearCode + 2;
 	clear_flg = true;
@@ -58,7 +60,7 @@ void LzwEncoder::cl_hash(int hsize){
 	for (int i = 0; i < hsize; ++i) htab[i] = -1;
 }
 
-void LzwEncoder::compress(int init_bits, std::vector<uint8_t> &outs){
+void LzwEncoder::compress(int init_bits, std::vector<uint8_t> *outs){
 	int fcode, c, i, ent, disp, hsize_reg, hshift;
 
 	// Set up the globals: g_init_bits - initial number of bits
@@ -121,19 +123,19 @@ void LzwEncoder::compress(int init_bits, std::vector<uint8_t> &outs){
 };
 
 
-void LzwEncoder::encode(std::vector<uint8_t> &outs){
-	outs.push_back(initCodeSize); // write "initial code size" byte
+void LzwEncoder::encode(std::vector<uint8_t> *outs){
+	outs->push_back(initCodeSize); // write "initial code size" byte
 	remaining = width * height; // reset navigation variables
 	curPixel = 0;
 	compress(initCodeSize + 1, outs); // compress and write the pixel data
-	outs.push_back(0); // write block terminator
+	outs->push_back(0); // write block terminator
 }
 
-void LzwEncoder::flush_char(std::vector<uint8_t> &outs){
+void LzwEncoder::flush_char(std::vector<uint8_t> *outs){
 	if (a_count > 0) {
-	  outs.push_back(a_count);
+	  outs->push_back(a_count);
 	  for(int i = 0; i < a_count; i++){
-	  	outs.push_back(accum[i]);
+	  	outs->push_back(accum[i]);
 	  }
 	  a_count = 0;
 	}
@@ -152,7 +154,7 @@ int LzwEncoder::nextPixel(){
 	return pix & 0xff;
 };
 
-void LzwEncoder::output(int code, std::vector<uint8_t> &outs){
+void LzwEncoder::output(int code, std::vector<uint8_t> *outs){
 	cur_accum &= masks[cur_bits];
 
 	if (cur_bits > 0) cur_accum |= (code << cur_bits);
