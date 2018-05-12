@@ -9,7 +9,7 @@
         "./src/LzwEncoder.cpp",
         "./src/NeuQuant.cpp",
         "./src/Logger.cpp",
-        "./src/ThreadPool.h"
+        "./src/GifFrameEncoder.cpp"
 
       ],
       "include_dirs" : [

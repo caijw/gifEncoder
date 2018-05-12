@@ -1,14 +1,16 @@
+#include <vector>
+#include <thread>
 #include "GifEncoder.h"
 #include "NeuQuant.h"
 #include "LzwEncoder.h"
 #include "Logger.h"
-#include <vector>
+#include "GifFrameEncoder.h"
+
 
 using namespace std;
 
 
-
-GifEncoder::GifEncoder(int width, int height){
+GifEncoder::GifEncoder(int width,int height, int repeat, int delay, int sample){
 
     this->width = width;
     this->height = height;
@@ -17,9 +19,9 @@ GifEncoder::GifEncoder(int width, int height){
     // transparent index in color table
     this->transIndex = 0;
     // -1 = no repeat, 0 = forever. anything else is repeat count
-    this->repeat = -1;
+    this->repeat = repeat;
     // frame delay (hundredths)
-    this->delay = 0;
+    this->delay = delay;
 
     this->image = nullptr; // current frame
 
@@ -39,12 +41,11 @@ GifEncoder::GifEncoder(int width, int height){
 
     this->firstFrame = true;
 
-    this->sample = 10; // default sample interval for quantizer
+    this->sample = sample; // default sample interval for quantizer
 
     this->started = false;  // started encoding
 
     this->out = new std::vector<unsigned char>();
-
 
 }
 
@@ -79,6 +80,7 @@ void GifEncoder::addFrame(unsigned char *imageData, int channels){
 
 
     this->getImagePixels(channels); // convert to correct format if necessary
+
     this->analyzePixels(channels); // build color table & map pixels
 
     if (this->firstFrame) {
@@ -93,15 +95,78 @@ void GifEncoder::addFrame(unsigned char *imageData, int channels){
     this->writeGraphicCtrlExt(); // write graphic control extension
     this->writeImageDesc(); // image descriptor
     if (!this->firstFrame) this->writePalette(); // local color table
+    //this->writePalette();
     this->writePixels(); // encode and write pixel data
 
     this->firstFrame = false;
 
 }
 
+void GifEncoder::addFrames(std::vector<unsigned char *> &buffers,int channels){
+    
+    std::vector< std::vector<unsigned char> * > results;
+    for(std::vector<unsigned char *>::size_type i = 0; i < buffers.size(); ++i){
+        GifFrameEncoder frameEncoder(buffers[i], channels, this->width, this->height, this->sample, this->firstFrame, this->repeat, this->transparent, this->dispose);
+
+        for(std::vector<unsigned char>::size_type j = 0; j < frameEncoder.out->size(); ++j){
+            this->out->push_back(frameEncoder.out->at(j));
+        }
+        this->firstFrame = false;
+    }
+
+}
+
+
+// void GifEncoder::addFrames(std::vector<unsigned char *> &buffers,int channels){
+//     std::vector<thread> workers;
+//     std::vector< std::vector<unsigned char> * > results;
+
+//     for(int i = 0; i < buffers.size(); ++i){
+
+//         workers.push_back(std::thread( [this, &results, i, channels](){
+
+//             // std::vector<unsigned char>* out;
+
+//             // this->image = imageData;
+
+
+//             this->getImagePixels(channels); // convert to correct format if necessary
+
+//             this->analyzePixels(channels); // build color table & map pixels
+
+//             if (this->firstFrame) {
+//               this->writeLSD(); // logical screen descriptior
+//               this->writePalette(); // global color table
+//               if (this->repeat >= 0) {
+//                 // use NS app extension to indicate reps
+//                 this->writeNetscapeExt();
+//               }
+//             }
+
+//             this->writeGraphicCtrlExt(); // write graphic control extension
+//             this->writeImageDesc(); // image descriptor
+//             if (!this->firstFrame) this->writePalette(); // local color table
+//             //this->writePalette();
+//             this->writePixels(); // encode and write pixel data
+
+//             this->firstFrame = false;
+
+
+//         }));
+//     }
+
+//     for(int i = 0; i < workers.size(); ++i){
+//         workers[i].join();
+//     }
+
+
+// }
+
+
 
 void GifEncoder::finish(){
-    this->out->push_back(0x3b); }
+    this->out->push_back(0x3b);
+}
 
 void GifEncoder::setQuality(int quality){
     if (quality < 1) quality = 1;
@@ -137,7 +202,8 @@ void GifEncoder::analyzePixels(int channels){
     NeuQuant* imgq = new NeuQuant( this->pixels, this->sample);
 
     imgq->buildColormap(); // create reduced palette
-    this->colorTab = imgq->getColormap();
+
+    this->colorTab = imgq->getColormap(); 
 
     // map image pixels to new palette
     int k = 0;

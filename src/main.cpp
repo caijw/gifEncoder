@@ -35,18 +35,20 @@ class RGBAToGIFWorker : public Nan::AsyncWorker {
     	delay = _delay;
         repeat = _repeat;
 
-    	gifEncoder = new GifEncoder(width, height);
+    	gifEncoder = new GifEncoder(width, height, repeat, delay, 10);
         gifEncoder->start();
-        gifEncoder->setRepeat(repeat);
-        gifEncoder->setDelay(delay);
-        gifEncoder->setQuality(10);
+        // gifEncoder->setRepeat(repeat);
+        // gifEncoder->setDelay(delay);
+        // gifEncoder->setQuality(10);
 
     }
     void Execute() {
 
-    	for (int i = 0; i < buffersVec.size(); i++) {
-            gifEncoder->addFrame(buffersVec[i], channels);
-    	}
+    	// for (int i = 0; i < buffersVec.size(); i++) {
+     //        gifEncoder->addFrame(buffersVec[i], channels);
+    	// }
+
+        gifEncoder->addFrames(buffersVec, channels);
 
         gifEncoder->finish();
 

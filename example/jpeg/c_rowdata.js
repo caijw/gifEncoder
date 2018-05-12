@@ -1,7 +1,5 @@
 let gifNodeAddOn = require('../../build/release/gifNodeAddOn.node');
 let fs = require('fs');
-let JPEG = require('jpeg-js');
-let GIFEncoder = require('gifencoder');
 let stream = require('stream');
 let config = require('./config.js');
 
@@ -42,20 +40,9 @@ async function runFun(){
     }
 
 
-    for(var i = 0; i < 10000; i++){
+
         let gifBuffer = await generateGIF(imgBuffers, {interval: 100, repeat: true});
-        // gifBuffer.clear()
-        delete gifBuffer;
-        console.log('finish encode', num++);
-        fs.writeFileSync('./out/' + num+'.gif', gifBuffer);
-    }
-
-
-
-
-
-
-
+        fs.writeFileSync('./img/out.gif', gifBuffer);
 }
 
 
