@@ -1,7 +1,7 @@
 #include "GifFrameEncoder.h"
 #include "NeuQuant.h"
 #include "LzwEncoder.h"
-
+#include <iostream>
 GifFrameEncoder::GifFrameEncoder(
 	unsigned char *imageData, 
 	int channels, 
@@ -9,9 +9,10 @@ GifFrameEncoder::GifFrameEncoder(
 	int height, 
 	int sample, 
 	bool firstFrame, 
-	int repeat,
-	int transparent,
-	int dispose){
+	int repeat, 
+	int transparent, 
+	int dispose,
+	int delay){
 
 	this->image = imageData;
 
@@ -29,6 +30,10 @@ GifFrameEncoder::GifFrameEncoder(
 
 	this->dispose = dispose;
 
+	this->delay = delay;
+
+	this->out = new std::vector<unsigned char>();
+
 	this->getImagePixels(channels); // convert to correct format if necessary
 
 	this->analyzePixels(channels); // build color table & map pixels
@@ -45,7 +50,7 @@ GifFrameEncoder::GifFrameEncoder(
 	this->writeGraphicCtrlExt(); // write graphic control extension
 	this->writeImageDesc(); // image descriptor
 	if (!this->firstFrame) this->writePalette(); // local color table
-	//this->writePalette();
+
 	this->writePixels(); // encode and write pixel data
 
 	
@@ -255,6 +260,31 @@ void GifFrameEncoder::writeImageDesc(){
             this->palSize // 6-8 size of color table
         );
     }
+}
+
+int GifFrameEncoder::findClosest(int c) {
+    if (this->colorTab.size() == 0) return -1;
+
+    int r = (c & 0xFF0000) >> 16;
+    int g = (c & 0x00FF00) >> 8;
+    int b = (c & 0x0000FF);
+    int minpos = 0;
+    int dmin = 256 * 256 * 256;
+    int len = this->colorTab.size();
+
+    for (int i = 0; i < len;) {
+        int index = i / 3;
+        int dr = r - (this->colorTab[i++] & 0xff);
+        int dg = g - (this->colorTab[i++] & 0xff);
+        int db = b - (this->colorTab[i++] & 0xff);
+        int d = dr * dr + dg * dg + db * db;
+        if (this->usedEntry[index] && (d < dmin)) {
+            dmin = d;
+            minpos = index;
+        }
+    }
+
+    return minpos;
 }
 
 

@@ -1,6 +1,6 @@
-
 #ifndef GIFENCODER_H
 #define GIFENCODER_H
+
 #include <vector>
 #include <stdint.h>
 
@@ -8,7 +8,7 @@ class GifEncoder {
 
     public:
 
-        GifEncoder(int width,int height, int repeat, int delay, int sample);
+        GifEncoder(int width, int height, int repeat, int delay, int sample);
 
         ~GifEncoder();
 

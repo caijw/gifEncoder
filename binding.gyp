@@ -3,14 +3,13 @@
     {
       "target_name": "gifNodeAddOn",
       "sources": [
-        "./src/main.cpp",
         "./src/stb_image.h",
-        "./src/GifEncoder.cpp",
+        "./src/GifFrameEncoder.cpp",
         "./src/LzwEncoder.cpp",
         "./src/NeuQuant.cpp",
         "./src/Logger.cpp",
-        "./src/GifFrameEncoder.cpp"
-
+        "./src/GifEncoder.cpp",
+        "./src/main.cpp"
       ],
       "include_dirs" : [
           "<!(node -e \"require('nan')\")"

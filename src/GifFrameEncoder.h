@@ -1,74 +1,80 @@
 #ifndef GIFFRAMEENCODER_H
 #define GIFFRAMEENCODER_H
+
 #include <vector>
 #include <stdint.h>
 
 class GifFrameEncoder
 {
-public:
-	GifFrameEncoder(
-		unsigned char *imageData, 
-		int channels, 
-		int width, 
-		int height, 
-		int sample, 
-		bool firstFrame, 
-		int repeat,
-		int transparent,
-		int dispose);
+	public:
+		GifFrameEncoder(
+			unsigned char *imageData, 
+			int channels, 
+			int width, 
+			int height, 
+			int sample, 
+			bool firstFrame, 
+			int repeat,
+			int transparent,
+			int dispose,
+			int delay);
 
-	~GifFrameEncoder();
+		~GifFrameEncoder();
 
-	std::vector<unsigned char>* out;
+		std::vector<unsigned char>* out;
 
-private:
-	unsigned char *image;
+	private:
+		unsigned char *image;
 
-	int width;
+		int width;
 
-	int height;
+		int height;
 
-	std::vector<unsigned char> pixels;
+		std::vector<unsigned char> pixels;
 
-	std::vector<unsigned char> indexedPixels;
+		std::vector<unsigned char> indexedPixels;
 
-	std::vector<bool> usedEntry;
+		std::vector<bool> usedEntry;
 
-	int sample;
+		int sample;
 
-	std::vector<unsigned char> colorTab;
+		std::vector<unsigned char> colorTab;
 
-	int colorDepth;
+		int colorDepth;
 
-	int palSize;
+		int palSize;
 
-	int transparent;
+		int transparent;
 
-	int transIndex;
+		int transIndex;
 
-	bool firstFrame;
+		bool firstFrame;
 
-	int repeat;
+		int repeat;
 
-	int dispose;
+		int dispose;
 
-	void getImagePixels(int channels);
+		int delay;
 
-	void analyzePixels(int channels);
+		void getImagePixels(int channels);
 
-	void writeLSD();
+		void analyzePixels(int channels);
 
-	void writePalette();
+		void writeLSD();
 
-	void writeNetscapeExt();
+		void writePalette();
 
-	void writeGraphicCtrlExt();
+		void writeNetscapeExt();
 
-	void writeImageDesc();
+		void writeGraphicCtrlExt();
 
-	void writeShort(int pValue);
+		void writeImageDesc();
 
-	void writePixels();
+		int GifFrameEncoder::findClosest(int c);
+
+		void writeShort(int pValue);
+
+		void writePixels();
 };
 
 #endif

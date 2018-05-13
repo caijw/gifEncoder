@@ -39,10 +39,10 @@ async function runFun(){
         imgBuffers.push( fs.readFileSync(filenames[i]) );
     }
 
+    let gifBuffer = await generateGIF(imgBuffers, {interval: 10, repeat: true});
 
+    fs.writeFileSync('./img/out.gif', gifBuffer);
 
-        let gifBuffer = await generateGIF(imgBuffers, {interval: 100, repeat: true});
-        fs.writeFileSync('./img/out.gif', gifBuffer);
 }
 
 

@@ -1,18 +1,16 @@
 #include <vector>
 #include <thread>
+#include <iostream>
 #include "GifEncoder.h"
 #include "NeuQuant.h"
 #include "LzwEncoder.h"
 #include "Logger.h"
 #include "GifFrameEncoder.h"
 
-
-using namespace std;
-
-
-GifEncoder::GifEncoder(int width,int height, int repeat, int delay, int sample){
+GifEncoder::GifEncoder(int width, int height, int repeat, int delay, int sample){
 
     this->width = width;
+
     this->height = height;
     // transparent color if given
     this->transparent = -1;
@@ -103,13 +101,18 @@ void GifEncoder::addFrame(unsigned char *imageData, int channels){
 }
 
 void GifEncoder::addFrames(std::vector<unsigned char *> &buffers,int channels){
-    
+
     std::vector< std::vector<unsigned char> * > results;
+
     for(std::vector<unsigned char *>::size_type i = 0; i < buffers.size(); ++i){
-        GifFrameEncoder frameEncoder(buffers[i], channels, this->width, this->height, this->sample, this->firstFrame, this->repeat, this->transparent, this->dispose);
+       
+
+        GifFrameEncoder frameEncoder(buffers[i], channels, this->width, this->height, this->sample, this->firstFrame, this->repeat, this->transparent, this->dispose, this->delay);
 
         for(std::vector<unsigned char>::size_type j = 0; j < frameEncoder.out->size(); ++j){
+
             this->out->push_back(frameEncoder.out->at(j));
+
         }
         this->firstFrame = false;
     }
