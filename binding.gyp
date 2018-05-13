@@ -4,6 +4,7 @@
       "target_name": "gifNodeAddOn",
       "sources": [
         "./src/stb_image.h",
+        "./src/ImageBuffer.cpp",
         "./src/GifFrameEncoder.cpp",
         "./src/LzwEncoder.cpp",
         "./src/NeuQuant.cpp",

@@ -3,12 +3,13 @@
 
 #include <vector>
 #include <stdint.h>
+#include "ImageBuffer.h"
 
 class GifEncoder {
 
     public:
 
-        GifEncoder(int width, int height, int repeat, int delay, int sample);
+        GifEncoder(int repeat, int delay, int sample);
 
         ~GifEncoder();
 
@@ -22,9 +23,11 @@ class GifEncoder {
 
         void setTransparent(int color);
 
-        void addFrame(unsigned char *imageData, int channels);
+        void addFrame(ImageBuffer imageBuffer);
 
-        void addFrames(std::vector<unsigned char *> &buffers,int channels);
+        void addFramesSyncLinear(std::vector<ImageBuffer> &imageBufferVec);
+
+        void addFramesParallel(std::vector<ImageBuffer> &imageBufferVec);
 
         void finish();
 
@@ -54,26 +57,6 @@ class GifEncoder {
         int sample; // default sample interval for quantizer
 
         bool started; // started encoding
-
-        void analyzePixels(int channels);
-
-        int findClosest(int c);
-
-        void getImagePixels(int channels);
-
-        void writeGraphicCtrlExt();
-
-        void writeImageDesc();
-
-        void writeLSD();
-
-        void writeNetscapeExt();
-
-        void writePalette();
-
-        void writeShort(int);
-
-        void writePixels();
 
         bool firstFrame;
 

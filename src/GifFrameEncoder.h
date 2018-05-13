@@ -70,7 +70,7 @@ class GifFrameEncoder
 
 		void writeImageDesc();
 
-		int GifFrameEncoder::findClosest(int c);
+		int findClosest(int c);
 
 		void writeShort(int pValue);
 

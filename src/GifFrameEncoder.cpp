@@ -57,7 +57,7 @@ GifFrameEncoder::GifFrameEncoder(
 }
 
 GifFrameEncoder::~GifFrameEncoder(){
-
+    // delete out;
 }
 
 
