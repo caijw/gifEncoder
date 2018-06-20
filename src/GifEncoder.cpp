@@ -2,7 +2,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-
+#include <node_api.h>
 #include <vector>
 #include <thread>
 #include <iostream>
@@ -29,13 +29,13 @@ GifEncoder::GifEncoder(int repeat, int delay, int sample){
 
     this->image = nullptr; // current frame
 
-    this->pixels; // BGR byte array from frame
+    //this->pixels; // BGR byte array from frame
 
-    this->indexedPixels; // converted frame indexed to palette
+    //this->indexedPixels; // converted frame indexed to palette
 
     this->colorDepth = 0; // number of bit planes
 
-    this->colorTab; // RGB palette
+    //this->colorTab; // RGB palette
 
     this->usedEntry; // active palette entries
 
@@ -99,7 +99,7 @@ void GifEncoder::addFrame(ImageBuffer imageBuffer){
 
 }
 
-void GifEncoder::addFramesSyncLinear(std::vector<ImageBuffer> &imageBufferVec){
+void GifEncoder::addFramesLinear(napi_env env, std::vector<ImageBuffer> &imageBufferVec, napi_ref callback_ref){
 
     for(std::vector<unsigned char *>::size_type i = 0; i < imageBufferVec.size(); ++i){
        
@@ -122,11 +122,22 @@ void GifEncoder::addFramesSyncLinear(std::vector<ImageBuffer> &imageBufferVec){
 
         delete frameEncoder.out;
     }
+    gifEncoder->finish();
+
+
+    napi_value callback;
+    NAPI_CALL(env, napi_get_reference_value(env, callback_ref, &callback));
+    napi_value argv[2];
+    napi_value result;
+    NAPI_CALL(env, napi_get_null(env, &argv[0]));
+    void ** data = (void **)( &( gifEncoder->out->data() ) );
+    NAPI_CALL(env, napi_create_buffer(env, gifEncoder->out->size(), data, &argv[1]) );
+    NAPI_CALL(env, napi_call_function(env, callback, callback, 2, argv, &result));
 
 }
 
 
-void GifEncoder::addFramesParallel(std::vector<ImageBuffer> &imageBufferVec){
+void GifEncoder::addFramesParallel(std::vector<ImageBuffer> &imageBufferVec, napi_ref &callback_ref){
 
     std::vector<std::thread> workers;
 
@@ -164,6 +175,16 @@ void GifEncoder::addFramesParallel(std::vector<ImageBuffer> &imageBufferVec){
 
         delete results[i];
     }
+
+    gifEncoder->finish();
+
+    v8::Local<v8::Object> gifBuffer = Nan::NewBuffer((char *)(gifEncoder->out->data()), gifEncoder->out->size(), buffer_delete_callback, gifEncoder->out).ToLocalChecked();
+
+    v8::Local<v8::Value> argv[] = { Nan::Null(), gifBuffer };
+
+    callback->Call(2, argv, async_resource);
+
+
 
 }
 

@@ -1,6 +1,6 @@
 #ifndef GIFENCODER_H
 #define GIFENCODER_H
-
+#include <node_api.h>
 #include <vector>
 #include <stdint.h>
 #include "ImageBuffer.h"
@@ -25,9 +25,9 @@ class GifEncoder {
 
         void addFrame(ImageBuffer imageBuffer);
 
-        void addFramesSyncLinear(std::vector<ImageBuffer> &imageBufferVec);
+        void addFramesLinear(napi_env env, std::vector<ImageBuffer> &imageBufferVec, napi_ref callback_ref);
 
-        void addFramesParallel(std::vector<ImageBuffer> &imageBufferVec);
+        void addFramesParallel(std::vector<ImageBuffer> &imageBufferVec, napi_ref &callback_ref);
 
         void finish();
 
