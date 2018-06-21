@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdint.h>
 #include "ImageBuffer.h"
+#include "common.h"
 
 class GifEncoder {
 
@@ -39,8 +40,6 @@ class GifEncoder {
 
     private:
 
-        int width;
-        int height;
         int transparent;
         int transIndex;
         int repeat;

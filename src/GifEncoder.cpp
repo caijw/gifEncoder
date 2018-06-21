@@ -1,18 +1,16 @@
-
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#include <node_api.h>
+
 #include <vector>
 #include <thread>
 #include <iostream>
 #include "GifEncoder.h"
 #include "NeuQuant.h"
 #include "LzwEncoder.h"
-#include "Logger.h"
 #include "GifFrameEncoder.h"
 #include "ImageBuffer.h"
-
+#include <node_api.h>
 
 
 
@@ -37,7 +35,7 @@ GifEncoder::GifEncoder(int repeat, int delay, int sample){
 
     //this->colorTab; // RGB palette
 
-    this->usedEntry; // active palette entries
+    //this->usedEntry; // active palette entries
 
     this->palSize = 7; // color table size (bits-1)
 
@@ -59,11 +57,11 @@ GifEncoder::~GifEncoder(){
 }
 
 void GifEncoder::setDelay(int milliseconds){
-    this->delay = (int)std::round(milliseconds / 10);
+    this->delay = milliseconds / 10;
 }
 
 void GifEncoder::setFrameRate(int fps){
-    this->delay = (int)std::round(100 / fps);
+    this->delay = 100 / fps;
 }
 
 void GifEncoder::setDispose(int disposalCode){
@@ -112,6 +110,8 @@ void GifEncoder::addFramesLinear(napi_env env, std::vector<ImageBuffer> &imageBu
 
         unsigned char *pixelData = stbi_load_from_memory(imageBufferVec[i].buffer, imageBufferVec[i].length, &imgWidth, &imgHeight, &imgChannels, desiredChannels);
 
+        std::cout << "imgWidth:" << imgWidth << "imgHeight:" << imgHeight << "imgChannels:" << imgChannels << "desiredChannels:" << desiredChannels << std::endl;
+
         GifFrameEncoder frameEncoder(pixelData, imgChannels, imgWidth, imgHeight, this->sample, firstFrame, this->repeat, this->transparent, this->dispose, this->delay);
 
         this->out->insert(this->out->end(), frameEncoder.out->begin(), frameEncoder.out->end());
@@ -122,69 +122,66 @@ void GifEncoder::addFramesLinear(napi_env env, std::vector<ImageBuffer> &imageBu
 
         delete frameEncoder.out;
     }
-    gifEncoder->finish();
 
+    this->finish();
 
     napi_value callback;
-    NAPI_CALL(env, napi_get_reference_value(env, callback_ref, &callback));
+    NAPI_CALL_RETURN_VOID(env, napi_get_reference_value(env, callback_ref, &callback));
     napi_value argv[2];
     napi_value result;
-    NAPI_CALL(env, napi_get_null(env, &argv[0]));
-    void ** data = (void **)( &( gifEncoder->out->data() ) );
-    NAPI_CALL(env, napi_create_buffer(env, gifEncoder->out->size(), data, &argv[1]) );
-    NAPI_CALL(env, napi_call_function(env, callback, callback, 2, argv, &result));
+    NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &argv[0]));
+    unsigned char *data = this->out->data();
+    for(int i = 0; i < 100; ++i){
+        std::cout << data[i] << " ";
+    }
+    std::cout << std::endl;
+    NAPI_CALL_RETURN_VOID(env, napi_create_buffer_copy(env, this->out->size(), (void *)(data), NULL, &argv[1]) );
+    NAPI_CALL_RETURN_VOID(env, napi_call_function(env, callback, callback, 2, argv, &result));
+    NAPI_CALL_RETURN_VOID(env, napi_delete_reference(env, callback_ref));
 
 }
 
 
 void GifEncoder::addFramesParallel(std::vector<ImageBuffer> &imageBufferVec, napi_ref &callback_ref){
 
-    std::vector<std::thread> workers;
+    // std::vector<std::thread> workers;
 
-    std::vector< std::vector<unsigned char> *> results( imageBufferVec.size(), nullptr);
+    // std::vector< std::vector<unsigned char> *> results( imageBufferVec.size(), nullptr);
 
-    for(std::vector<unsigned char *>::size_type i = 0; i < imageBufferVec.size(); ++i){
+    // for(std::vector<unsigned char *>::size_type i = 0; i < imageBufferVec.size(); ++i){
 
-        workers.emplace_back([this, &results, i](std::vector<ImageBuffer> &imageBufferVec){
+    //     workers.emplace_back([this, &results, i](std::vector<ImageBuffer> &imageBufferVec){
 
-            bool firstFrame = (imageBufferVec[i].index == 0);
+    //         bool firstFrame = (imageBufferVec[i].index == 0);
 
-            int imgWidth = 0,
-                imgHeight = 0,
-                imgChannels = 0,
-                desiredChannels = 0;
+    //         int imgWidth = 0,
+    //             imgHeight = 0,
+    //             imgChannels = 0,
+    //             desiredChannels = 0;
 
-            unsigned char *pixelData = stbi_load_from_memory(imageBufferVec[i].buffer, imageBufferVec[i].length, &imgWidth, &imgHeight, &imgChannels, desiredChannels);
+    //         unsigned char *pixelData = stbi_load_from_memory(imageBufferVec[i].buffer, imageBufferVec[i].length, &imgWidth, &imgHeight, &imgChannels, desiredChannels);
 
-            GifFrameEncoder frameEncoder(pixelData, imgChannels, imgWidth, imgHeight, this->sample, firstFrame, this->repeat, this->transparent, this->dispose, this->delay);
+    //         GifFrameEncoder frameEncoder(pixelData, imgChannels, imgWidth, imgHeight, this->sample, firstFrame, this->repeat, this->transparent, this->dispose, this->delay);
 
-            results[i] = frameEncoder.out;
+    //         results[i] = frameEncoder.out;
 
-            stbi_image_free(pixelData);
+    //         stbi_image_free(pixelData);
 
-        }, imageBufferVec);
-    }
+    //     }, imageBufferVec);
+    // }
 
-    for(std::vector<unsigned char *>::size_type i = 0; i < workers.size(); ++i){
-        workers[i].join();
-    }
+    // for(std::vector<unsigned char *>::size_type i = 0; i < workers.size(); ++i){
+    //     workers[i].join();
+    // }
 
-    for(std::vector<unsigned char *>::size_type i = 0; i < results.size(); ++i){
+    // for(std::vector<unsigned char *>::size_type i = 0; i < results.size(); ++i){
 
-        this->out->insert(this->out->end(), results[i]->begin(), results[i]->end());
+    //     this->out->insert(this->out->end(), results[i]->begin(), results[i]->end());
 
-        delete results[i];
-    }
+    //     delete results[i];
+    // }
 
-    gifEncoder->finish();
-
-    v8::Local<v8::Object> gifBuffer = Nan::NewBuffer((char *)(gifEncoder->out->data()), gifEncoder->out->size(), buffer_delete_callback, gifEncoder->out).ToLocalChecked();
-
-    v8::Local<v8::Value> argv[] = { Nan::Null(), gifBuffer };
-
-    callback->Call(2, argv, async_resource);
-
-
+    // this->finish();
 
 }
 
