@@ -66,7 +66,7 @@ void GifFrameEncoder::getImagePixels(int channels){
     int h = this->height;
     this->pixels = std::vector<unsigned char>(w * h * 3);
 
-    for(int i = 0; i < this->pixels.size(); i++){
+    for(std::vector<unsigned char>::size_type i = 0; i < this->pixels.size(); i++){
         this->pixels[i] = 0;
     }
 
@@ -92,13 +92,13 @@ void GifFrameEncoder::analyzePixels(int channels){
 
     if(this->usedEntry.size() == 0){
         this->usedEntry = std::vector<bool>(nPix);
-        for(int i = 0; i < this->usedEntry.size(); i++){
+        for(std::vector<bool>::size_type i = 0; i < this->usedEntry.size(); i++){
             this->usedEntry[i] = false;
         }
     }
     
     this->indexedPixels = std::vector<unsigned char>(nPix);
-    for(int i = 0; i < this->indexedPixels.size(); i++){
+    for(std::vector<unsigned char>::size_type i = 0; i < this->indexedPixels.size(); i++){
         this->indexedPixels[i] = 0;
     }
 

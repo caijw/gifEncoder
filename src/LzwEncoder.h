@@ -22,9 +22,6 @@ private:
     int width;
     int height;
     std::vector<uint8_t> pixels;
-    int colorDepth;
-
-
 
     int initCodeSize;
 

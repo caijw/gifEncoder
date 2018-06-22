@@ -45,8 +45,8 @@
 /* Defs for freq and bias */
 #define intbiasshift               16            // bias for fractions
 #define intbias                    65536         // 1 << intbiasshift
-#define gammashift                 10            // gamma = 1024
-#define gamma                      1024          // 1 << gammashift
+#define gammashift                 10            // _gamma = 1024
+#define _gamma                      1024          // 1 << gammashift
 #define betashift                  10
 #define beta                       64            // intbias >> betashift beta = 1/1024
 #define betagamma                  65536         // intbias << (gammashift - betashift)

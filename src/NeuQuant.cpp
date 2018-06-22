@@ -22,10 +22,9 @@
 
 #include <cstdint>
 #include "NeuQuant.h"
-#include <cmath>
 #include <iostream>
-#include "Logger.h"
 #include <iomanip>
+#include <cmath>
 using namespace std;
 
 
@@ -132,7 +131,7 @@ int NeuQuant::contest(int b, int g, int r) {
     finds closest neuron (min dist) and updates freq
     finds best neuron (min dist-bias) and returns position
     for frequently chosen neurons, freq[i] is high and bias[i] is negative
-    bias[i] = gamma * ((1 / netsize) - freq[i])
+    bias[i] = _gamma * ((1 / netsize) - freq[i])
   */
 
   double bestd = ~(1 << 31);
@@ -352,14 +351,13 @@ std::vector<uint8_t> NeuQuant::getColormap(){
     for (int i = 0; i < netsize; i++)
       index[(int)network[i][3]] = i;
 
-    int k = 0;
     for (int l = 0; l < netsize; l++) {
       int j = index[l];
       map.push_back((int)network[j][0] & 0xff);
       map.push_back((int)network[j][1] & 0xff);
       map.push_back((int)network[j][2] & 0xff);
     }
-    delete index;
+    delete []index;
     
     return map;
 };
