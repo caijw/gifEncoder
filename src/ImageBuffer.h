@@ -6,8 +6,8 @@ class ImageBuffer
 public:
 	ImageBuffer(unsigned char *buffer, unsigned int length, unsigned int index);
 	~ImageBuffer();
-	unsigned char *buffer;
 	unsigned int length;
+	unsigned char *buffer;
 	unsigned int index;
 };
 
