@@ -1,7 +1,5 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-
-
 #include <vector>
 #include <thread>
 #include <iostream>
@@ -12,6 +10,18 @@
 #include "ImageBuffer.h"
 #include <node_api.h>
 
+
+typedef struct {
+  napi_ref _callback;
+  napi_async_work _request;
+  GifEncoder *gifEncoder;
+} carrier;
+
+static void deleteCallback(napi_env env, void* data, void* finalize_hint) {
+    // std::cout << "-------------------------------free out----------------------------------" << std::endl;
+    std::vector<unsigned char>* out = (std::vector<unsigned char>*)(finalize_hint);
+    delete out;
+}
 
 
 GifEncoder::GifEncoder(int repeat, int delay, int sample){
@@ -27,15 +37,7 @@ GifEncoder::GifEncoder(int repeat, int delay, int sample){
 
     this->image = nullptr; // current frame
 
-    //this->pixels; // BGR byte array from frame
-
-    //this->indexedPixels; // converted frame indexed to palette
-
     this->colorDepth = 0; // number of bit planes
-
-    //this->colorTab; // RGB palette
-
-    //this->usedEntry; // active palette entries
 
     this->palSize = 7; // color table size (bits-1)
 
@@ -97,47 +99,84 @@ void GifEncoder::addFrame(ImageBuffer imageBuffer){
 
 }
 
-void GifEncoder::addFramesLinear(napi_env env, std::vector<ImageBuffer> &imageBufferVec, napi_ref callback_ref){
+void Execute(napi_env env, void* data) {
 
-    for(std::vector<unsigned char *>::size_type i = 0; i < imageBufferVec.size(); ++i){
+    carrier* the_carrier = static_cast<carrier*>(data);
+
+    for(std::vector<unsigned char *>::size_type i = 0; i < the_carrier->gifEncoder->imageBufferVec.size(); ++i){
        
-        bool firstFrame = (imageBufferVec[i].index == 0);
+        bool firstFrame = (the_carrier->gifEncoder->imageBufferVec[i].index == 0);
 
         int imgWidth = 0,
             imgHeight = 0,
             imgChannels = 0,
             desiredChannels = 0;
 
-        unsigned char *pixelData = stbi_load_from_memory(imageBufferVec[i].buffer, imageBufferVec[i].length, &imgWidth, &imgHeight, &imgChannels, desiredChannels);
+        unsigned char *pixelData = stbi_load_from_memory(the_carrier->gifEncoder->imageBufferVec[i].buffer, the_carrier->gifEncoder->imageBufferVec[i].length, &imgWidth, &imgHeight, &imgChannels, desiredChannels);
 
-        std::cout << "imgWidth:" << imgWidth << "imgHeight:" << imgHeight << "imgChannels:" << imgChannels << "desiredChannels:" << desiredChannels << std::endl;
+        GifFrameEncoder frameEncoder(pixelData, imgChannels, imgWidth, imgHeight, the_carrier->gifEncoder->sample, firstFrame, the_carrier->gifEncoder->repeat, the_carrier->gifEncoder->transparent, the_carrier->gifEncoder->dispose, the_carrier->gifEncoder->delay);
 
-        GifFrameEncoder frameEncoder(pixelData, imgChannels, imgWidth, imgHeight, this->sample, firstFrame, this->repeat, this->transparent, this->dispose, this->delay);
+        the_carrier->gifEncoder->out->insert(the_carrier->gifEncoder->out->end(), frameEncoder.out->begin(), frameEncoder.out->end());
 
-        this->out->insert(this->out->end(), frameEncoder.out->begin(), frameEncoder.out->end());
-
-        this->firstFrame = false;
+        the_carrier->gifEncoder->firstFrame = false;
 
         stbi_image_free(pixelData);
 
         delete frameEncoder.out;
     }
 
-    this->finish();
+    the_carrier->gifEncoder->finish();
+}
+
+void Complete(napi_env env, napi_status status, void* data) {
+    if (status != napi_ok) {
+      napi_throw_type_error(env, nullptr, "Execute callback failed.");
+      return;
+    }
+
+    carrier* the_carrier = static_cast<carrier*>(data);
 
     napi_value callback;
-    NAPI_CALL_RETURN_VOID(env, napi_get_reference_value(env, callback_ref, &callback));
+    NAPI_CALL_RETURN_VOID(env, napi_get_reference_value(env, the_carrier->_callback, &callback));
     napi_value argv[2];
     napi_value result;
     NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &argv[0]));
-    unsigned char *data = this->out->data();
-    for(int i = 0; i < 100; ++i){
-        std::cout << data[i] << " ";
-    }
-    std::cout << std::endl;
-    NAPI_CALL_RETURN_VOID(env, napi_create_buffer_copy(env, this->out->size(), (void *)(data), NULL, &argv[1]) );
+    unsigned char *bufData = the_carrier->gifEncoder->out->data();
+
+    // NAPI_CALL(env,
+    //           napi_create_external_buffer(
+    //               env,
+    //               3000000,
+    //               theCopy,
+    //               deleteTheText,
+    //               NULL,  // finalize_hint
+    //               &theBuffer));
+
+    NAPI_CALL_RETURN_VOID(env, napi_create_external_buffer(env, the_carrier->gifEncoder->out->size(), bufData, deleteCallback, (void *)the_carrier->gifEncoder->out, &argv[1]) );
+    // NAPI_CALL_RETURN_VOID(env, napi_create_buffer_copy(env, this->out->size(), (void *)(data), NULL, &argv[1]) );
+    // delete this->out;
     NAPI_CALL_RETURN_VOID(env, napi_call_function(env, callback, callback, 2, argv, &result));
-    NAPI_CALL_RETURN_VOID(env, napi_delete_reference(env, callback_ref));
+    NAPI_CALL_RETURN_VOID(env, napi_delete_reference(env, the_carrier->_callback));
+    NAPI_CALL_RETURN_VOID(env, napi_delete_async_work(env, the_carrier->_request));
+    delete the_carrier;
+}
+
+
+void GifEncoder::addFramesLinear(napi_env env, std::vector<ImageBuffer> &imageBufferVec, napi_ref callback_ref){
+
+    this->imageBufferVec = imageBufferVec;
+
+    napi_value resource_name;
+    NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, "GenerateGif", NAPI_AUTO_LENGTH, &resource_name));
+    carrier *the_carrier = new carrier();
+
+    the_carrier->_callback = callback_ref;
+
+    the_carrier->gifEncoder = this;
+
+    NAPI_CALL_RETURN_VOID(env, napi_create_async_work(env, nullptr, resource_name, Execute, Complete, the_carrier, &(the_carrier->_request) ));
+
+    NAPI_CALL_RETURN_VOID(env, napi_queue_async_work(env, the_carrier->_request ));
 
 }
 

@@ -55,21 +55,16 @@ napi_value picsToGIF(napi_env env, napi_callback_info info) {
     NAPI_CALL(env, napi_get_value_int32(env, args[1], &repeat));
     NAPI_CALL(env, napi_get_value_int32(env, args[2], &quality));
 
-    std::cout << "delay:" << delay << "repeat:" << repeat << "quality:" << quality << std::endl;
-
     for(uint32_t i = 0; i < arrayLen; ++i){
         napi_value buffersEle;
         NAPI_CALL(env, napi_get_element(env, args[3], i, &buffersEle));
         unsigned char *rowData;
         size_t rowDataLen;
         NAPI_CALL(env, napi_get_buffer_info(env, buffersEle, (void **)&rowData, &rowDataLen));
-        std::cout << "rowDataLen:" << rowDataLen << std::endl;
         imageBufferVec.push_back( ImageBuffer(rowData, rowDataLen, i) );
     }
     NAPI_CALL(env, napi_get_value_bool(env, args[4], &parallel));
     NAPI_CALL(env, napi_create_reference(env, args[5], 1, &callback_ref ) );
-
-    std::cout << "parallel:" << parallel << std::endl;
 
     GifEncoder *gifEncoder = new GifEncoder(repeat, delay, quality);
     gifEncoder->start();

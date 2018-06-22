@@ -4,9 +4,9 @@ const path = require('path');
 const gifEncoder = require('./../../index.js');
 let imgBuffers = [];
 
-imgBuffers.push(fs.readFileSync(path.resolve(__dirname, './img/blue.jpeg') ));
-imgBuffers.push(fs.readFileSync(path.resolve(__dirname, './img/green.jpeg') ));
-imgBuffers.push(fs.readFileSync(path.resolve(__dirname, './img/red.jpeg') ));
+imgBuffers.push(fs.readFileSync(path.resolve(__dirname, './img/in/blue.jpeg') ));
+imgBuffers.push(fs.readFileSync(path.resolve(__dirname, './img/in/green.jpeg') ));
+imgBuffers.push(fs.readFileSync(path.resolve(__dirname, './img/in/red.jpeg') ));
 
 console.log(imgBuffers[0].length);
 console.log(imgBuffers[1].length);
@@ -18,8 +18,8 @@ gifEncoder.picsToGIF(imgBuffers, {}).then(function (gifBuffer) {
 		tmp.push(gifBuffer[i]);
 	}
 	console.log(tmp.join(' '));
-	fs.writeFileSync(path.resolve(__dirname, './img/out.gif'), gifBuffer);
+	fs.writeFileSync(path.resolve(__dirname, './img/out/out.gif'), gifBuffer);
 
 }).catch(function (err) {
-	console.log(err);
+	throw err;
 });

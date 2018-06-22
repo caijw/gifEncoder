@@ -38,7 +38,7 @@ class GifEncoder {
 
         std::vector<unsigned char>* out;
 
-    private:
+        std::vector<ImageBuffer> imageBufferVec;
 
         int transparent;
         int transIndex;
@@ -58,6 +58,12 @@ class GifEncoder {
         bool started; // started encoding
 
         bool firstFrame;
+
+
+    private:
+
+
+
 
 };
 

@@ -1,5 +1,6 @@
 const common = require('./common/common.js');
-const gifNodeAddOn = require('./build/release/gifNodeAddOn.node');
+const gifNodeAddOn = require(`./build/${common.buildType}/gifNodeAddOn.node`);
+
 
 exports.picsToGIF = async function (picBuffers, options) {
 
