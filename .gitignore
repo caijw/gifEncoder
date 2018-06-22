@@ -1,11 +1,11 @@
 # nodejs node_modules
-
 node_modules/
 
 # add_on build result
-
 build/
 
-#others
+# output gif
+*.gif
 
+#others
 package-lock.json
