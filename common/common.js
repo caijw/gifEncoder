@@ -1,1 +1,0 @@
-exports.buildType = process.config.target_defaults.default_configuration;
