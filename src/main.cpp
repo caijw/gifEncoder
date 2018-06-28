@@ -70,7 +70,7 @@ napi_value picsToGIF(napi_env env, napi_callback_info info) {
     gifEncoder->start();
 
     if(parallel){
-        gifEncoder->addFramesParallel(imageBufferVec, callback_ref);
+        gifEncoder->addFramesParallel(env, imageBufferVec, callback_ref);
     }else{
         gifEncoder->addFramesLinear(env, imageBufferVec, callback_ref);
     }
