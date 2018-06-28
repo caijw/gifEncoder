@@ -59,7 +59,7 @@ class GifEncoder {
 
         bool firstFrame;
 
-        std::vector< std::vector<unsigned char> *> parallelEncodeResults( imageBufferVec.size(), nullptr);
+        // std::vector< std::vector<unsigned char> *> parallelEncodeResults( imageBufferVec.size(), );
         
     private:
 

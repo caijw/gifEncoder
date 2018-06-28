@@ -16,11 +16,10 @@ typedef struct {
   napi_async_work _request;
   GifEncoder *gifEncoder;
   std::vector<ImageBuffer> imageBufferVec;
-  ImageBuffer imageBuffer;
 } carrier;
 
 static void deleteCallback(napi_env env, void* data, void* finalize_hint) {
-    // std::cout << "-------------------------------free out----------------------------------" << std::endl;
+    std::cout << "-------------------------------free out----------------------------------" << std::endl;
     std::vector<unsigned char>* out = (std::vector<unsigned char>*)(finalize_hint);
     delete out;
 }
@@ -145,18 +144,10 @@ void Complete(napi_env env, napi_status status, void* data) {
     NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &argv[0]));
     unsigned char *bufData = the_carrier->gifEncoder->out->data();
 
-    // NAPI_CALL(env,
-    //           napi_create_external_buffer(
-    //               env,
-    //               3000000,
-    //               theCopy,
-    //               deleteTheText,
-    //               NULL,  // finalize_hint
-    //               &theBuffer));
-
     NAPI_CALL_RETURN_VOID(env, napi_create_external_buffer(env, the_carrier->gifEncoder->out->size(), bufData, deleteCallback, (void *)the_carrier->gifEncoder->out, &argv[1]) );
-    // NAPI_CALL_RETURN_VOID(env, napi_create_buffer_copy(env, this->out->size(), (void *)(data), NULL, &argv[1]) );
-    // delete this->out;
+    int64_t adjust_external_memory_result;
+    NAPI_CALL_RETURN_VOID(env, napi_adjust_external_memory(env, the_carrier->gifEncoder->out->size(), &adjust_external_memory_result)); //nodejs v10 should call this api to give v8 a hint to trigger gc.If no, memery will leak. see discussion https://github.com/nodejs/node/issues/21441
+
     NAPI_CALL_RETURN_VOID(env, napi_call_function(env, callback, callback, 2, argv, &result));
     NAPI_CALL_RETURN_VOID(env, napi_delete_reference(env, the_carrier->_callback));
     NAPI_CALL_RETURN_VOID(env, napi_delete_async_work(env, the_carrier->_request));
@@ -225,7 +216,7 @@ void GifEncoder::addFramesParallel(napi_env env, std::vector<ImageBuffer> &image
     // }
 
     // this->finish();
-
+    /*
     std::vector< std::vector<unsigned char> *> results( imageBufferVec.size(), nullptr);
 
     this->parallelEncodeResults = 
@@ -249,7 +240,7 @@ void GifEncoder::addFramesParallel(napi_env env, std::vector<ImageBuffer> &image
 
     }
 
-
+    */
 
 }
 

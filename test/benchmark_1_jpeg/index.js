@@ -20,13 +20,7 @@ var job = async function () {
 			let gifBuffer = await gifEncoder.picsToGIF(imgBuffers, {delay: 10, repeat: true, parallel: false });
 			let end = Date.now();
 			console.log("finish task: " + i + ', cost :' + (end - begin) + 'ms');
-		    fs.writeFileSync(path.resolve(__dirname, './img/out/out-' + i + '.gif'), gifBuffer);
-		    if(i % 20 == 1){
-		    	process.nextTick(function () {
-		    		console.log('gc');
-		    		global.gc();
-		    	});
-		    }
+		    // fs.writeFileSync(path.resolve(__dirname, './img/out/out-' + i + '.gif'), gifBuffer);
 
 		}catch(e){
 			throw e;
