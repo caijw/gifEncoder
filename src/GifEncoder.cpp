@@ -19,7 +19,7 @@ typedef struct {
 } carrier;
 
 static void deleteCallback(napi_env env, void* data, void* finalize_hint) {
-    std::cout << "-------------------------------free out----------------------------------" << std::endl;
+    //std::cout << "-------------------------------free out----------------------------------" << std::endl;
     std::vector<unsigned char>* out = (std::vector<unsigned char>*)(finalize_hint);
     delete out;
 }

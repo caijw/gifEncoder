@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "gifNodeAddOn",
+      "target_name": "gifEncoder",
       "sources": [
         "./src/common.h",
         "./src/stb_image.h",
