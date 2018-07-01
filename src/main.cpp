@@ -4,6 +4,8 @@
 #include <vector>
 #include "GifEncoder.h"
 #include "ImageBuffer.h"
+#include "uv.h"
+#include <stdlib.h> 
 
 /*
     delay(Number), repeat(Number), quality(Number), buffers(Array of Buffer), parallel(Bool), callback(Function)
@@ -68,7 +70,6 @@ napi_value picsToGIF(napi_env env, napi_callback_info info) {
 
     GifEncoder *gifEncoder = new GifEncoder(repeat, delay, quality);
     gifEncoder->start();
-
     if(parallel){
         gifEncoder->addFramesParallel(env, imageBufferVec, callback_ref);
     }else{

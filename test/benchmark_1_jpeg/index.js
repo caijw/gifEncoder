@@ -14,12 +14,16 @@ for(let i = 0; i < filenames.length; i++){
 }
 
 var job = async function () {
-	for(var i = 0 ; i < 30000; ++i){
+	let parallel = true;
+	let i = 0;
+	while(true){
 		try{
 			let begin = Date.now();
-			let gifBuffer = await gifEncoder.picsToGIF(imgBuffers, {delay: 10, repeat: true, parallel: false });
+			parallel = !!parallel;
+			i++;
+			let gifBuffer = await gifEncoder.picsToGIF(imgBuffers, {delay: 10, repeat: true, parallel: parallel });
 			let end = Date.now();
-			console.log("finish task: " + i + ', cost :' + (end - begin) + 'ms');
+			console.log("finish task: " + i + ', cost :' + (end - begin) + 'ms. parallel: ' + parallel);
 		    // fs.writeFileSync(path.resolve(__dirname, './img/out/out-' + i + '.gif'), gifBuffer);
 
 		}catch(e){

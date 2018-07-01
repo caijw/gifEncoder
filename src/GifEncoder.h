@@ -28,7 +28,7 @@ class GifEncoder {
 
         void addFramesLinear(napi_env env, std::vector<ImageBuffer> &imageBufferVec, napi_ref callback_ref);
 
-        void addFramesParallel(napi_env env, std::vector<ImageBuffer> &imageBufferVec, napi_ref &callback_ref);
+        void addFramesParallel(napi_env env, std::vector<ImageBuffer> &imageBufferVec, napi_ref callback_ref);
 
         void finish();
 
@@ -59,7 +59,9 @@ class GifEncoder {
 
         bool firstFrame;
 
-        // std::vector< std::vector<unsigned char> *> parallelEncodeResults( imageBufferVec.size(), );
+        std::vector< std::vector<unsigned char> *> encodeResults;
+
+        bool finishEncode;
         
     private:
 
